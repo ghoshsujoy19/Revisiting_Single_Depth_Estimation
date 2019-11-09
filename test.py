@@ -34,7 +34,7 @@ def test(test_loader, model, thre):
 
     for i, sample_batched in enumerate(test_loader):
         image, depth = sample_batched['image'], sample_batched['depth']
-
+        print(i)
         depth = depth.cuda(async=True)
         image = image.cuda()
 
@@ -80,6 +80,7 @@ def test(test_loader, model, thre):
 
     averageError['RMSE'] = np.sqrt(averageError['MSE'])
     print(averageError)
+    print(errorSum)
 
 def define_model(is_resnet, is_densenet, is_senet):
     if is_resnet:
