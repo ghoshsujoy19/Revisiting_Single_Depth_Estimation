@@ -18,8 +18,8 @@ class model(nn.Module):
 
         self.E = Encoder
         self.D = modules.D(num_features)
-        self.MFF = modules.MFF(block_channel)
-        self.R = modules.R(block_channel, 80)
+        self.MFF = modules.MFF(block_channel, 80)
+        self.R = modules.R(block_channel)
         self.EdgeNet = edgenet.EdgeNet()
 
 

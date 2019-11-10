@@ -61,7 +61,7 @@ class Network(torch.nn.Module):
 			torch.nn.Sigmoid()
 		)
 
-		self.load_state_dict(torch.load('./network-' + arguments_strModel + '.pytorch'))
+		self.load_state_dict(torch.load('./models/network-bsds500.pytorch'))
 	# end
 
 	def forward(self, tensorInput):
@@ -103,11 +103,14 @@ class EdgeNet(torch.nn.Module):
         self.conv2 = nn.Conv2d(4, 16, kernel_size=3, stride=2, padding=1, bias=True)
 
     def forward(self, image_batch):
-        with torch.no_grad:
-            edgeOutput = self.Network(image_batch)
+        #with torch.no_grad:
+        #    edgeOutput = self.Network(image_batch)
+        for p in self.Network.parameters():
+            p.requires_grad = False
+        edgeOutput = self.Network(image_batch)
         out1 = self.conv1(edgeOutput)
         out1 = self.bn1(out1)
-        out1 = nn.ReLU(out1)
+        out1 = F.relu(out1)
 
         out2 = self.conv2(out1)
         return out2
