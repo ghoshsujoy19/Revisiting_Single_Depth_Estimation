@@ -11,6 +11,8 @@ import util
 import numpy as np
 import sobel
 from models import modules, net, resnet, densenet, senet
+import robust_loss_pytorch.adaptive
+
 
 parser = argparse.ArgumentParser(description='PyTorch DenseNet Training')
 parser.add_argument('--epochs', default=20, type=int,
@@ -58,7 +60,9 @@ def main():
         batch_size = 4
 
     cudnn.benchmark = True
-    optimizer = torch.optim.Adam(model.parameters(), args.lr, weight_decay=args.weight_decay)
+    adaptive = robust_loss_pytorch.adaptive.AdaptiveLossFunction(num_dims=256*256, float_dtype=np.float32, device='cpu')
+    params = list(model.parameters()) + list(adaptive.parameters())
+    optimizer = torch.optim.Adam(params, args.lr, weight_decay=args.weight_decay)
 
     train_loader = loaddata.getTrainingData(batch_size)
 
@@ -107,7 +111,8 @@ def train(train_loader, model, optimizer, epoch):
         # depth_normal = F.normalize(depth_normal, p=2, dim=1)
         # output_normal = F.normalize(output_normal, p=2, dim=1)
 
-        loss_depth = torch.log(torch.abs(output - depth) + 0.5).mean()
+        #loss_depth = torch.log(torch.abs(output - depth) + 0.5).mean()
+        loss_depth = torch.log(adaptive.lossfun((output - depth)[:,None]) + 0.5).mean()
         loss_dx = torch.log(torch.abs(output_grad_dx - depth_grad_dx) + 0.5).mean()
         loss_dy = torch.log(torch.abs(output_grad_dy - depth_grad_dy) + 0.5).mean()
         loss_normal = torch.abs(1 - cos(output_normal, depth_normal)).mean()
