@@ -61,7 +61,7 @@ def main():
         batch_size = 4
 
     cudnn.benchmark = True
-    adaptive = robust_loss_pytorch.adaptive.AdaptiveLossFunction(num_dims=256*256, float_dtype=np.float32, device=torch.device('cuda:0'))
+    adaptive = robust_loss_pytorch.adaptive.AdaptiveLossFunction(num_dims=228*304, float_dtype=np.float32, device=torch.device('cuda:0'))
     params = list(model.parameters()) + list(adaptive.parameters())
     optimizer = torch.optim.Adam(params, args.lr, weight_decay=args.weight_decay)
 
@@ -98,7 +98,6 @@ def train(train_loader, model, adaptive, optimizer, epoch):
         optimizer.zero_grad()
 
         output = model(image)
-        print(image.shape)
 
         depth_grad = get_gradient(depth)
         output_grad = get_gradient(output)
@@ -114,7 +113,7 @@ def train(train_loader, model, adaptive, optimizer, epoch):
         # output_normal = F.normalize(output_normal, p=2, dim=1)
 
         #loss_depth = torch.log(torch.abs(output - depth) + 0.5).mean()
-        loss_depth = torch.log(adaptive.lossfun((output - depth)[:,None]) + 0.5).mean()
+        loss_depth = torch.log(adaptive.lossfun(torch.flatten(output - depth) + 0.5)).mean()
         loss_dx = torch.log(torch.abs(output_grad_dx - depth_grad_dx) + 0.5).mean()
         loss_dy = torch.log(torch.abs(output_grad_dy - depth_grad_dy) + 0.5).mean()
         loss_normal = torch.abs(1 - cos(output_normal, depth_normal)).mean()
