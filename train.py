@@ -60,7 +60,7 @@ def main():
         batch_size = 4
 
     cudnn.benchmark = True
-    adaptive = robust_loss_pytorch.adaptive.AdaptiveLossFunction(num_dims=256*256, float_dtype=np.float32, device='cpu')
+    adaptive = robust_loss_pytorch.adaptive.AdaptiveLossFunction(num_dims=256*256, float_dtype=np.float32, device='cuda')
     params = list(model.parameters()) + list(adaptive.parameters())
     optimizer = torch.optim.Adam(params, args.lr, weight_decay=args.weight_decay)
 
@@ -68,12 +68,12 @@ def main():
 
     for epoch in range(args.start_epoch, args.epochs):
         adjust_learning_rate(optimizer, epoch)
-        train(train_loader, model, optimizer, epoch)
+        train(train_loader, model, adaptive, optimizer, epoch)
     
     save_checkpoint({'state_dict': model.state_dict()})
 
 
-def train(train_loader, model, optimizer, epoch):
+def train(train_loader, model, adaptive, optimizer, epoch):
     criterion = nn.L1Loss()
     batch_time = AverageMeter()
     losses = AverageMeter()
