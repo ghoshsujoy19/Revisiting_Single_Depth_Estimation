@@ -9,9 +9,7 @@ import numpy as np
 from . import modules
 from torchvision import utils
 
-from . import senet, resnet, densenet
-# import resnet
-# import densenet
+from . import edgenet
 
 class model(nn.Module):
     def __init__(self, Encoder, num_features, block_channel):
@@ -21,13 +19,15 @@ class model(nn.Module):
         self.E = Encoder
         self.D = modules.D(num_features)
         self.MFF = modules.MFF(block_channel)
-        self.R = modules.R(block_channel)
+        self.R = modules.R(block_channel, 80)
+        self.EdgeNet = edgenet.EdgeNet()
 
 
     def forward(self, x):
         x_block1, x_block2, x_block3, x_block4 = self.E(x)
+        edge_map = self.EdgeNet(x)
         x_decoder = self.D(x_block1, x_block2, x_block3, x_block4)
-        x_mff = self.MFF(x_block1, x_block2, x_block3, x_block4,[x_decoder.size(2),x_decoder.size(3)])
+        x_mff = self.MFF(x_block1, x_block2, x_block3, x_block4, edge_map, [x_decoder.size(2),x_decoder.size(3)])
         out = self.R(torch.cat((x_decoder, x_mff), 1))
 
         return out

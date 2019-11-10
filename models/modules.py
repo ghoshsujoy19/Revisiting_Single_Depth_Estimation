@@ -173,13 +173,13 @@ class MFF(nn.Module):
         self.bn = nn.BatchNorm2d(num_features)
         
 
-    def forward(self, x_block1, x_block2, x_block3, x_block4, size):
+    def forward(self, x_block1, x_block2, x_block3, x_block4, edge_map, size):
         x_m1 = self.up1(x_block1, size)
         x_m2 = self.up2(x_block2, size)
         x_m3 = self.up3(x_block3, size)
         x_m4 = self.up4(x_block4, size)
 
-        x = self.bn(self.conv(torch.cat((x_m1, x_m2, x_m3, x_m4), 1)))
+        x = self.bn(self.conv(torch.cat((x_m1, x_m2, x_m3, x_m4, edge_map), 1)))
         x = F.relu(x)
 
         return x
@@ -190,7 +190,7 @@ class R(nn.Module):
 
         super(R, self).__init__()
         
-        num_features = 64 + block_channel[3]//32
+        num_features = 80 + block_channel[3]//32
         self.conv0 = nn.Conv2d(num_features, num_features,
                                kernel_size=5, stride=1, padding=2, bias=False)
         self.bn0 = nn.BatchNorm2d(num_features)
