@@ -1,5 +1,6 @@
 import argparse
-
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 import time
 import torch
 import torch.nn as nn
@@ -60,7 +61,7 @@ def main():
         batch_size = 4
 
     cudnn.benchmark = True
-    adaptive = robust_loss_pytorch.adaptive.AdaptiveLossFunction(num_dims=256*256, float_dtype=np.float32, device='cuda')
+    adaptive = robust_loss_pytorch.adaptive.AdaptiveLossFunction(num_dims=256*256, float_dtype=np.float32, device=torch.device('cuda:0'))
     params = list(model.parameters()) + list(adaptive.parameters())
     optimizer = torch.optim.Adam(params, args.lr, weight_decay=args.weight_decay)
 
@@ -97,6 +98,7 @@ def train(train_loader, model, adaptive, optimizer, epoch):
         optimizer.zero_grad()
 
         output = model(image)
+        print(image.shape)
 
         depth_grad = get_gradient(depth)
         output_grad = get_gradient(output)
