@@ -116,11 +116,6 @@ def train(train_loader, model, adaptive, optimizer, epoch):
         output_reshaped = torch.flatten(output, start_dim=1)
         depth_reshaped = torch.flatten(depth, start_dim=1)
         
-        print(output.shape)
-        print(output_reshaped.shape)
-        print(depth.shape)
-        print(depth_reshaped.shape)
-
         loss_depth = torch.log(adaptive.lossfun(output_reshaped - depth_reshaped) + 0.5).mean()
         loss_dx = torch.log(torch.abs(output_grad_dx - depth_grad_dx) + 0.5).mean()
         loss_dy = torch.log(torch.abs(output_grad_dy - depth_grad_dy) + 0.5).mean()
