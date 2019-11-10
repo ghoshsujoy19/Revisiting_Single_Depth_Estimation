@@ -61,7 +61,7 @@ def main():
         batch_size = 4
 
     cudnn.benchmark = True
-    adaptive = robust_loss_pytorch.adaptive.AdaptiveLossFunction(num_dims=228*304, float_dtype=np.float32, device=torch.device('cuda:0'))
+    adaptive = robust_loss_pytorch.adaptive.AdaptiveLossFunction(num_dims=114*152, float_dtype=np.float32, device=torch.device('cuda:0'))
     params = list(model.parameters()) + list(adaptive.parameters())
     optimizer = torch.optim.Adam(params, args.lr, weight_decay=args.weight_decay)
 
@@ -113,10 +113,14 @@ def train(train_loader, model, adaptive, optimizer, epoch):
         # output_normal = F.normalize(output_normal, p=2, dim=1)
 
         #loss_depth = torch.log(torch.abs(output - depth) + 0.5).mean()
-        # output_reshaped = output.reshape(0)
-        # depth_reshaped = depth.reshape(0)
+        output_reshaped = torch.flatten(output, start_dim=1)
+        depth_reshaped = torch.flatten(depth, start_dim=1)
+        
         print(output.shape)
+        print(output_reshaped.shape)
         print(depth.shape)
+        print(depth_reshaped.shape)
+
         loss_depth = torch.log(adaptive.lossfun(output_reshaped - depth_reshaped) + 0.5).mean()
         loss_dx = torch.log(torch.abs(output_grad_dx - depth_grad_dx) + 0.5).mean()
         loss_dy = torch.log(torch.abs(output_grad_dy - depth_grad_dy) + 0.5).mean()
