@@ -16,7 +16,7 @@ import robust_loss_pytorch.adaptive
 
 
 parser = argparse.ArgumentParser(description='PyTorch DenseNet Training')
-parser.add_argument('--epochs', default=20, type=int,
+parser.add_argument('--epochs', default=10, type=int,
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int,
                     help='manual epoch number (useful on restarts)')
@@ -55,7 +55,7 @@ def main():
     elif torch.cuda.device_count() == 2:
         print("2 gpus used")
         model = torch.nn.DataParallel(model, device_ids=[0, 1]).cuda()
-        batch_size = 8
+        batch_size = 10
     else:
         model = model.cuda()
         batch_size = 4
@@ -69,9 +69,11 @@ def main():
 
     for epoch in range(args.start_epoch, args.epochs):
         adjust_learning_rate(optimizer, epoch)
+        filename = 'epoch-'+str(epoch)+'.pth.tar'
+        print(filename)
         train(train_loader, model, adaptive, optimizer, epoch)
-    
-    save_checkpoint({'state_dict': model.state_dict()})
+        #filename = 'epoch-'+str(epoch)+'.pth.tar'
+        save_checkpoint({'state_dict': model.state_dict()}, filename)
 
 
 def train(train_loader, model, adaptive, optimizer, epoch):

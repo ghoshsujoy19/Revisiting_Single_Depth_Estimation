@@ -13,10 +13,10 @@ import sobel
 def main():
     model = define_model(is_resnet=False, is_densenet=False, is_senet=True)
     model = torch.nn.DataParallel(model).cuda()
-    model.load_state_dict(torch.load('./pretrained_model/model_senet'))
+    model.load_state_dict(torch.load('epoch-5.pth.tar')['state_dict'])
 
     test_loader = loaddata.getTestingData(1)
-    test(test_loader, model, 0.25)
+    test(test_loader, model, 1.00)
 
 
 def test(test_loader, model, thre):
@@ -53,16 +53,17 @@ def test(test_loader, model, thre):
         errorSum = util.addErrors(errorSum, errors, batchSize)
         averageError = util.averageErrors(errorSum, totalNumber)
 
-        edge1_valid = (depth_edge > thre)
-        edge2_valid = (output_edge > thre)
+        edge1_valid = (depth_edge > thre).int()
+        edge2_valid = (output_edge > thre).int()
 
         nvalid = np.sum(torch.eq(edge1_valid, edge2_valid).float().data.cpu().numpy())
         A = nvalid / (depth.size(2)*depth.size(3))
 
         nvalid2 = np.sum(((edge1_valid + edge2_valid) ==2).float().data.cpu().numpy())
-        P = nvalid2 / (np.sum(edge2_valid.data.cpu().numpy()))
-        R = nvalid2 / (np.sum(edge1_valid.data.cpu().numpy()))
-
+        #nvalid2 = np.sum(torch.eq(edge1_valid, torch.eq(edge2_valid, torch.eq(edge1_valid, edge2_valid))).float().data.cpu().numpy())
+        P = nvalid2 / (np.sum(edge2_valid.float().data.cpu().numpy()))
+        R = nvalid2 / (np.sum(edge1_valid.float().data.cpu().numpy()))
+        #print('nvalid = {0}, nvalid2 = {1}, P = {2}, R = {3}, totalnumber = {4}, val1 = {5}, val2 = {6}'.format(nvalid, nvalid2, P, R, totalNumber, np.sum(edge2_valid.data.cpu().numpy()), np.sum(edge1_valid.data.cpu().numpy())))
         F = (2 * P * R) / (P + R)
 
         Ae += A
@@ -77,7 +78,7 @@ def test(test_loader, model, thre):
     print('PV', Pv)
     print('RV', Rv)
     print('FV', Fv)
-
+    print('Av', Av)
     averageError['RMSE'] = np.sqrt(averageError['MSE'])
     print(averageError)
     print(errorSum)

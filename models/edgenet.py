@@ -105,9 +105,9 @@ class EdgeNet(torch.nn.Module):
     def forward(self, image_batch):
         #with torch.no_grad:
         #    edgeOutput = self.Network(image_batch)
-        for p in self.Network.parameters():
-            p.requires_grad = False
-        edgeOutput = self.Network(image_batch)
+        #for p in self.Network.parameters():
+        #    p.requires_grad = False
+        edgeOutput = self.Network(image_batch).detach()
         out1 = self.conv1(edgeOutput)
         out1 = self.bn1(out1)
         out1 = F.relu(out1)
